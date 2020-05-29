@@ -2,12 +2,15 @@ package com.usian.controller;
 
 import com.usian.pojo.TbContent;
 import com.usian.service.ContentService;
+import com.usian.utils.AdNode;
 import com.usian.utils.PageResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/service/content")
@@ -38,5 +41,13 @@ public class ContentController {
     @RequestMapping("/deleteContentByIds")
     public Integer deleteContentByIds(@RequestParam Long id){
         return this.contentService.deleteContentByIds(id);
+    }
+
+    /**
+     * 查询首页大广告位
+     */
+    @RequestMapping("/selectFrontendContentByAD")
+    public List<AdNode> selectFrontendContentByAD(){
+        return this.contentService.selectFrontendContentByAD();
     }
 }

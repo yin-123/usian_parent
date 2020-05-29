@@ -11,7 +11,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
@@ -25,33 +24,40 @@ public class FileUploadController {
     @Autowired
     private FastFileStorageClient storageClient;
 
-    private static final List<String> CONTENT_TYPES = Arrays.asList("image/jpeg", "image/gif","image/png");
+    private static final List<String> CONTENT_TYPES = Arrays.asList("image/jpeg", "image/gif");
 
     /**
      * 图片上传
      */
     @RequestMapping("/upload")
-    public Result fileUpload(MultipartFile file) throws IOException {
+    public Result fileUpload(MultipartFile file) {
 
+        try {
+            String originalFilename = file.getOriginalFilename();
             // 校验文件的类型
-            if (!CONTENT_TYPES.contains(file.getContentType())){
+            String contentType = file.getContentType();
+            if (!CONTENT_TYPES.contains(contentType)){
                 // 文件类型不合法，直接返回
-                return Result.error("文件类型不合法:");
+                return Result.error("文件类型不合法:"+originalFilename);
             }
 
             // 校验文件的内容
             BufferedImage bufferedImage = ImageIO.read(file.getInputStream());
             if (bufferedImage == null) {
-                return Result.error("文件内容不合法：");
+                return Result.error("文件内容不合法：" + originalFilename);
             }
 
-            // 上传文件
-            String filename=file.getOriginalFilename();
-            String lastName = StringUtils.substringAfterLast(filename, ".");
-            StorePath storePath = storageClient.uploadFile(file.getInputStream(),
-                    file.getSize(), lastName, null);
+            // 保存到服务器
+            //file.transferTo(new File("D:\\images\\" + originalFilename));
+            String ext = StringUtils.substringAfterLast(originalFilename, ".");
+            StorePath storePath = this.storageClient.uploadFile(file.getInputStream(),
+                    file.getSize(), ext, null);
 
             // 生成url地址，返回
             return Result.ok("http://image.usian.com/" + storePath.getFullPath());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return Result.error("服务器内部错误");
     }
 }

@@ -6,6 +6,8 @@ import com.usian.utils.PageResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/service/item")
 public class ItemController {
@@ -37,4 +39,18 @@ public class ItemController {
         return this.itemService.insertTbItem(tbItem,desc,itemParams);
     }
 
+    @RequestMapping("/deleteItemById")
+    public Integer deleteItemById(Long itemId){
+        return itemService.deleteItemById(itemId);
+    }
+
+    @RequestMapping("/preUpdateItem")
+    public Map<String,Object> preUpdateItem(@RequestParam Long itemId){
+        return itemService.preUpdateItem(itemId);
+    }
+
+    @RequestMapping("/updateTbItem")
+    public Integer updateTbItem(@RequestBody TbItem tbItem){
+        return this.itemService.updateTbItem(tbItem);
+    }
 }
