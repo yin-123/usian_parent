@@ -8,10 +8,12 @@ import com.usian.pojo.TbItem;
 import com.usian.pojo.TbItemCat;
 import com.usian.pojo.TbItemCatExample;
 import com.usian.pojo.TbItemExample;
+import com.usian.redis.RedisClient;
 import com.usian.utils.CatNode;
 import com.usian.utils.CatResult;
 import com.usian.utils.PageResult;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,7 +25,13 @@ import java.util.List;
 public class ItemCatServiceImpl implements ItemCatService {
 
 	@Autowired
-	private TbItemCatMapper tbItemCatMapper;
+	public TbItemCatMapper tbItemCatMapper;
+
+	@Autowired
+	private RedisClient redisClient;
+
+	@Value("${PROTAL_CATRESULT_KEY}")
+	private String PROTAL_CATRESULT_KEY;
 
 	@Override
 	public List<TbItemCat> selectItemCategoryByParentId(Long id) {
@@ -36,9 +44,18 @@ public class ItemCatServiceImpl implements ItemCatService {
 
 	@Override
 	public CatResult selectItemCategoryAll() {
+		//1.先查询redis
+		CatResult catResultRedis=(CatResult)redisClient.get(PROTAL_CATRESULT_KEY);
+		if (catResultRedis!=null){
+			//2.如果redis有，直接return
+			return catResultRedis;
+		}
+		//3.如果redis没有，则查询数据库并把结果放到redis中
+		List catList = getCatList(0L);
 		CatResult catResult = new CatResult();
 		//查询商品分类
-		catResult.setData(getCatList(0L));
+		catResult.setData(catList);
+		redisClient.set(PROTAL_CATRESULT_KEY,catResult);
 		return catResult;
 	}
 
